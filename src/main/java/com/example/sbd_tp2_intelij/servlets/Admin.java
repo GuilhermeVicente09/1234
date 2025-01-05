@@ -1,84 +1,128 @@
 package com.example.sbd_tp2_intelij.servlets;
 
+import com.example.sbd_tp2_intelij.DBConnection;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+
+
+import java.io.IOException;
 
 @WebServlet("/Admin")
 public class Admin extends HttpServlet {
-    public static boolean gerirCliente(String dados, String[] array) { // Dados vai ser do tipo Manipula dados
-// e gerirCliente vai retornar um boolean
 
-        if (array == null || array.length < 10) {
-            System.out.println("Dados inválidos");
-            return false;
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        String action = req.getParameter("action");
+        if ("gerirCliente".equals(action)) {
+            String nif = req.getParameter("nif");
+            String nome = req.getParameter("nome");
+            String contacto = req.getParameter("contacto");
+            String morada = req.getParameter("morada");
+            String preferencias = req.getParameter("preferenciasLinguisticas");
+
+            // Chamar método que insere/atualiza na BD
+            boolean ok = gerirCliente(nif, nome, contacto, morada, preferencias);
+            if (ok) {
+                // redirecionar ou forward para JSP de sucesso
+                resp.sendRedirect("/adminSucesso.jsp");
+            } else {
+                // redirecionar ou forward para JSP de erro
+                resp.sendRedirect("/adminErro.jsp");
+            }
         }
 
-// a verificacao se o NIF esta completo tem de ser feita na parte do jsp
+        else if ("gerirCarro".equals(action)) {
+            String matricula = req.getParameter("matricula");
+            String marca = req.getParameter("marca");
+            String modelo = req.getParameter("modelo");
+            String cor = req.getParameter("cor");
+            String media = req.getParameter("media"); // se fosse binário, precisaria de outra abordagem
+            String tipo = req.getParameter("tipo");
 
-
-        String query = "INSERT INTO Cliente (NIF, Nome, Contacto, Morada, Preferencias_Linguisticas)"
-                + "VALUES('" + array[0] + "','" + array[1]+ "','" + array[2]+ "','" + array[3]+ "','" + array[4]+ "')"
-                + "AS new ON DUPLICATE KEY UPDATE Nome = new.Nome, Contacto = new.Contacto,"
-                + "    Morada = new.Morada,"
-                + "    Preferencias_Linguisticas = new.Preferencias_Linguisticas;";
-        /*boolean altera_dados = dados.xDiretiva(query)
-         *
-         *
-         * if (altera_dados){
-         * */
-
-
-//TODO Ver aqui o array 6, porque depende se é empresa ou é pessoal
-        String nQuery = "INSERT INTO Condutor(Numero_Carta,Nome,Data_Emissao_Carta,Data_Nascimento,Validade_Carta,Reputacao,NIF)"
-                + "VALUES('"+ array[5] + "','"+ array[6] + "','"+ array[7] + "','"+ array[8] + "','"
-                + array[9] + "','"+ array[10] + "','"+ array[0] + "') AS new"
-                + "ON DUPLICATE KEY UPDATE"
-                + "    Nome = new.Nome,\r\n"
-                + "    Data_Emissao_Carta = new.Data_Emissao_Carta,"
-                + "    Data_Nascimento = new.Data_Nascimento,"
-                + "    Validade_Carta = new.Validade_Carta,"
-                + "    Reputacao = new.Reputacao,"
-                + "    NIF = new.NIF;";
-
-        /* boolean altera_dados_n = dados.xDiretiva(nQuery)
-         *
-         * return altera_dados_n;
-         * }
-         *
-         * return false
-         *
-         */
-
-
-
-        return true; // alterar para "altera_dados"
+            boolean ok = gerirCarro(matricula, marca, modelo, cor, media, tipo);
+            if (ok) {
+                resp.sendRedirect("/adminSucesso.jsp");
+            } else {
+                resp.sendRedirect("/adminErro.jsp");
+            }
+        }
     }
 
-    public static boolean gerirCarro(String dados, String[] array) {
-        // Validar se os dados de entrada são válidos
-        if (array == null || array.length < 6) {
-            System.out.println("Dados inválidos");
-            return false;
-        }
+    // Exemplo de método auxiliar (aqui “inserir ou atualizar”)
+    public boolean gerirCliente(String nif, String nome, String contacto,
+                                String morada, String preferencias) {
+        // Verificar se param estão OK
+        if (nif == null || nif.length() < 9) return false;
 
-        // Construir a query SQL para inserir ou atualizar informações do veículo
-        String query = "INSERT INTO Veiculo (Matricula, Marca, Modelo, Cor, Media, Tipo) "
-                + "VALUES ('" + array[0] + "', '" + array[1] + "', '" + array[2] + "', '"
-                + array[3] + "', '" + array[4] + "', '" + array[5] + "') "
-                + "AS new "
+        String query = "INSERT INTO Cliente (NIF, Nome, Contacto, Morada, Preferencias_Linguisticas) "
+                + "VALUES (?, ?, ?, ?, ?) "
                 + "ON DUPLICATE KEY UPDATE "
-                + "Marca = new.Marca, "
-                + "Modelo = new.Modelo, "
-                + "Cor = new.Cor, "
-                + "Media = new.Media, "
-                + "Tipo = new.Tipo;";
+                + "  Nome = VALUES(Nome), "
+                + "  Contacto = VALUES(Contacto), "
+                + "  Morada = VALUES(Morada), "
+                + "  Preferencias_Linguisticas = VALUES(Preferencias_Linguisticas)";
 
-        // Executar a query usando um método similar ao `dados.xDiretiva(query)`
-        // boolean alteraDados = dados.xDiretiva(query); // Aqui assume-se que `dados.xDiretiva` executa a query e retorna um booleano
+        try {
+            // Abrir (ou reusar) a con
+            DBConnection dbConn = new DBConnection();
+            PreparedStatement ps = dbConn.con.prepareStatement(query);
 
-        // Retornar o resultado da execução da query
-        //return alteraDados;
-        return true;
+            ps.setString(1, nif);
+            ps.setString(2, nome);
+            ps.setString(3, contacto);
+            ps.setString(4, morada);
+            ps.setString(5, preferencias);
+
+            int rows = ps.executeUpdate();
+            ps.close();
+            return (rows > 0);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
+    public boolean gerirCarro(String matricula, String marca, String modelo,
+                              String cor, String media, String tipo) {
+        String query = "INSERT INTO Veiculo (Matricula, Marca, Modelo, Cor, Media, Tipo) "
+                + "VALUES (?, ?, ?, ?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE "
+                + "  Marca = VALUES(Marca), "
+                + "  Modelo = VALUES(Modelo), "
+                + "  Cor = VALUES(Cor), "
+                + "  Media = VALUES(Media), "
+                + "  Tipo = VALUES(Tipo)";
+
+        try {
+            DBConnection dbConn = new DBConnection();
+            PreparedStatement ps = dbConn.con.prepareStatement(query);
+            ps.setString(1, matricula);
+            ps.setString(2, marca);
+            ps.setString(3, modelo);
+            ps.setString(4, cor);
+            ps.setString(5, media); // se for binário, use ps.setBinaryStream(...) ou ps.setBytes(...)
+            ps.setString(6, tipo);
+
+            int rows = ps.executeUpdate();
+            ps.close();
+            return (rows > 0);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

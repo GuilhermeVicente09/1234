@@ -5,8 +5,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Connection {
-	static java.sql.Connection con;
+public class DBConnection {
+	public static java.sql.Connection con;
 
 	static Statement stmt;
 
@@ -25,7 +25,7 @@ public class Connection {
 			"&useLegacyDatetimeCode=false&serverTimezone=Europe/Lisbon";
 
 
-	public Connection() {
+	public DBConnection() {
 		loadDriver();
 		makeConnection();
 	}
@@ -98,13 +98,20 @@ public class Connection {
 		return parques;
 	}
 
+	public List<Aluguer> procuraAluguers() {
+		List<Aluguer> aluguers = new ArrayList<>();
+		String query = "SELECT ID_Aluguer, Inicio, Fim, Coordenadas_Recolha, Coordenadas_Entrega, Custo_Final, Desconto, Matricula, NIF FROM aluguer";
+		//ResultSet rs = stmt.executeQuery();
+        return aluguers;
+    }
+
 	public boolean reservarVeiculo(String tipoVeiculo, String parqueLevantamento, java.sql.Timestamp inicio, java.sql.Timestamp fim) {
 		String query =
 				"INSERT INTO Aluguer (ID_Aluguer, Inicio, Fim, Coordenadas_Recolha, Coordenadas_Entrega, Custo_Final, Matricula, NIF) " +
 						"SELECT UUID(), ?, ?, ?, ?, 0, V.Matricula, '123456789' " +
 						"FROM Veiculo V " +
 						"WHERE V.Tipo = ? AND EXISTS ( " +
-						"    SELECT 1 FROM Parque_Estacionamento P WHERE P.Coordenadas = ? " +
+						"SELECT 1 FROM Parque_Estacionamento P WHERE P.Coordenadas = ? " +
 						") " +
 						"LIMIT 1";
 

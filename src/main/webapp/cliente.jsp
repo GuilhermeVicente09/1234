@@ -40,9 +40,13 @@
     <br><br>
 
     <form method="post" action="/Cliente?action=reservarVeiculo">
-        <!-- Campos do formulário -->
+<%--        <input type="text" name="tipoVeiculo" />--%>
+<%--        <input type="text" name="parqueLevantamento" />--%>
+<%--        <input type="datetime-local" name="inicio" />--%>
+<%--        <input type="datetime-local" name="fim" />--%>
         <button type="submit">Reservar</button>
     </form>
+
 
 </form>
 </body>

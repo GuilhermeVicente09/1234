@@ -1,6 +1,6 @@
 package com.example.sbd_tp2_intelij.servlets;
 
-import com.example.sbd_tp2_intelij.Connection;
+import com.example.sbd_tp2_intelij.DBConnection;
 import com.example.sbd_tp2_intelij.Parque;
 import com.example.sbd_tp2_intelij.tipoVeiculo;
 import jakarta.servlet.ServletException;
@@ -10,14 +10,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/Cliente")
 public class Cliente extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Connection dbConnection = new Connection();
+        DBConnection dbConnection = new DBConnection();
         List<Parque> parques = dbConnection.procuraParques();
         List<tipoVeiculo> tiposVeiculos = dbConnection.procuraVeiculos();
 
