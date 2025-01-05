@@ -12,9 +12,10 @@
 <form method="post" action="/Cliente?action=reservarVeiculo">
     <!-- Campo para selecionar o tipo de veículo -->
     <label for="tipoVeiculo">Tipo de Veículo:</label>
+
     <select name="tipoVeiculo" id="tipoVeiculo" required>
         <c:forEach var="tipos" items="${tiposVeiculos}">
-            <option value="${tipos.Tipo}">${tipos.Tipo}</option>
+            <option>${tipos.descricao}</option>
         </c:forEach>
     </select>
     <br><br>
@@ -29,22 +30,20 @@
     <br><br>
 
     <!-- Campo para selecionar o período de aluguer -->
-    <label for="periodoAluguer">Período de Aluguer:</label>
-    <select name="periodoAluguer" id="periodoAluguer" required>
-        <option value="1">1 hora</option>
-        <option value="2">2 horas</option>
-        <option value="3">3 horas</option>
-
-        <option value="24">1 dia</option>
-        <option value="48">2 dias</option>
-        <option value="72">3 dias</option>
-
-        <option value="336">1 semana</option>
-        <option value="336">2 semanas</option>
-    </select>
+    <label for="inicio">Data e Hora de Início:</label>
+    <input type="datetime-local" name="inicio" id="inicio" required>
     <br><br>
 
-    <button type="submit">Reservar</button>
+    <label for="fim">Data e Hora de Fim:</label>
+    <input type="datetime-local" name="fim" id="fim" required>
+    <br><br>
+    <br><br>
+
+    <form method="post" action="/Cliente?action=reservarVeiculo">
+        <!-- Campos do formulário -->
+        <button type="submit">Reservar</button>
+    </form>
+
 </form>
 </body>
 </html>

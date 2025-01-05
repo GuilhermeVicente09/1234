@@ -1,10 +1,7 @@
 package com.example.sbd_tp2_intelij;
 
 
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,10 +14,10 @@ public class Connection {
 
 	//	for how to set up data source see below.
 
-	private static String server="localhost:3306";
-	private static String database="MyRentACar";
-	private static String user="root";
-	private static String password="root";
+	private static final String server="localhost:3306";
+	private static final String database="MyRentACar";
+	private static final String user="root";
+	private static final String password="root";
 
 	public static String DRV = "com.mysql.cj.jdbc.Driver";
 	public static String URL = "jdbc:mysql://"+server+"/"+database+
@@ -57,7 +54,7 @@ public class Connection {
 
 	public List<tipoVeiculo> procuraVeiculos(){
 		List<tipoVeiculo> tiposVeiculos = new ArrayList<>();
-		String query = "SELECT Tipo, Descricao, Potencia, Numero_Portas, Numero_Lugares, Tipo_Motor, Capacidade_Carga FROM tipoVeiculo";
+		String query = "SELECT Tipo, Descricao, Potencia, Numero_Portas, Numero_Lugares, Tipo_Motor, Capacidade_Carga FROM tipo_veiculo";
 		try (Statement stmt = con.createStatement();
 			 ResultSet rs = stmt.executeQuery(query)) {
 
@@ -100,5 +97,51 @@ public class Connection {
 
 		return parques;
 	}
+
+	public boolean reservarVeiculo(String tipoVeiculo, String parqueLevantamento, java.sql.Timestamp inicio, java.sql.Timestamp fim) {
+		String query =
+				"INSERT INTO Aluguer (ID_Aluguer, Inicio, Fim, Coordenadas_Recolha, Coordenadas_Entrega, Custo_Final, Matricula, NIF) " +
+						"SELECT UUID(), ?, ?, ?, ?, 0, V.Matricula, '123456789' " +
+						"FROM Veiculo V " +
+						"WHERE V.Tipo = ? AND EXISTS ( " +
+						"    SELECT 1 FROM Parque_Estacionamento P WHERE P.Coordenadas = ? " +
+						") " +
+						"LIMIT 1";
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setTimestamp(1, inicio);
+			stmt.setTimestamp(2, fim);
+			stmt.setString(3, parqueLevantamento);
+			stmt.setString(4, parqueLevantamento); // Mesmo parque para recolha e entrega
+			stmt.setString(5, tipoVeiculo);
+			stmt.setString(6, parqueLevantamento);
+
+			return stmt.executeUpdate() > 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public double calcularCusto(String tipoVeiculo, java.sql.Timestamp inicio, java.sql.Timestamp fim) {
+		String query = "SELECT tarifa_hora FROM tipo_veiculo WHERE Tipo = ?";
+		double tarifaHora = 0;
+
+		try (PreparedStatement stmt = con.prepareStatement(query)) {
+			stmt.setString(1, tipoVeiculo);
+			ResultSet rs = stmt.executeQuery();
+
+			if (rs.next()) {
+				tarifaHora = rs.getDouble("tarifa_hora");
+			}
+
+			long duracaoEmHoras = (fim.getTime() - inicio.getTime()) / (1000 * 60 * 60);
+			return duracaoEmHoras * tarifaHora;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+
 
 }

@@ -21,17 +21,25 @@ public class Cliente extends HttpServlet {
         List<Parque> parques = dbConnection.procuraParques();
         List<tipoVeiculo> tiposVeiculos = dbConnection.procuraVeiculos();
 
-        req.setAttribute("parques",parques);
-        req.getRequestDispatcher("/cliente.jsp").forward(req, resp);
-        req.setAttribute("tiposVeiculos",tiposVeiculos);
+        req.setAttribute("parques", parques);
+        req.setAttribute("tiposVeiculos", tiposVeiculos);
         req.getRequestDispatcher("/cliente.jsp").forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String nome = req.getParameter("nome");
+        String action = req.getParameter("action");
 
-        System.out.println(nome);
-        resp.sendRedirect("/SBD_TP2_INTELIJ_war_exploded/Cliente");
+        String tipoVeiculo = null;
+        if ("reservarVeiculo".equals(action)) {
+            // Captura os dados do formulário
+            tipoVeiculo = req.getParameter("tipoVeiculo");
+            String parqueLevantamento = req.getParameter("parqueLevantamento");
+            String inicio = req.getParameter("inicio");
+            String fim = req.getParameter("fim");
+
+        }
+
+
     }
 }
